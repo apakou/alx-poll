@@ -4,8 +4,8 @@ import { Vote } from "lucide-react"
 
 export default function Home() {
   return (
-    <div className="container flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] py-10 ml-40">
-      <Vote className="h-20 w-20 text-blue-600 mb-8" />
+    <div className="container flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] py-10">
+      <Vote className="h-16 w-16 text-blue-600 mb-8" />
       <h1 className="text-4xl font-bold text-center mb-4">
         Create and Share Polls Easily
       </h1>
