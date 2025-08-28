@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ALX Poll - Modern Polling Application",
-  description: "Create and share polls with your community",
+  title: "ALX Poll - Create and Share Polls",
+  description: "A modern polling application for creating and sharing polls with your community",
 };
 
 export default function RootLayout({
@@ -27,11 +27,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
           <Navigation />
-          <main className="flex-1">
+          <main className="min-h-[calc(100vh-4rem)]">
             {children}
           </main>
         </AuthProvider>
