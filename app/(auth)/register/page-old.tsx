@@ -56,58 +56,29 @@ export default function RegisterPage() {
       return
     }
 
-    try {
-      const { error } = await signUp(formData.email, formData.password, formData.name)
-      
-      if (error) {
-        setError(error.message)
-        setIsLoading(false)
-      } else {
-        setSuccess(true)
-        setIsLoading(false)
-      }
-    } catch (err) {
-      console.error('Registration error:', err)
-      setError('An unexpected error occurred. Please try again.')
+    const { error } = await signUp(formData.email, formData.password, formData.name)
+    
+    if (error) {
+      setError(error.message)
+      setIsLoading(false)
+    } else {
+      setSuccess(true)
       setIsLoading(false)
     }
   }
-
-  if (success) {
-    return (
-      <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-screen">
-        <Card className="w-full max-w-md">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center text-green-600">
-              Check Your Email
-            </CardTitle>
-            <CardDescription className="text-center">
-              We've sent you a confirmation link to complete your registration.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-center">
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md flex items-center gap-2 text-green-700">
-              <CheckCircle className="h-4 w-4" />
-              <span className="text-sm">Registration successful! Please check your email.</span>
-            </div>
-            <p className="text-sm text-gray-600 mb-4">
-              Didn't receive the email? Check your spam folder or{" "}
-              <button 
-                onClick={() => setSuccess(false)}
-                className="text-primary hover:underline"
-              >
-                try again
-              </button>
-            </p>
-            <Link href="/login">
-              <Button className="w-full">
-                Back to Sign In
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    )
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords don't match!")
+      setIsLoading(false)
+      return
+    }
+    
+    // TODO: Implement actual registration logic
+    console.log("Registration attempt:", formData)
+    
+    // Simulate API call
+    setTimeout(() => {
+      setIsLoading(false)
+    }, 1000)
   }
 
   return (
@@ -120,12 +91,6 @@ export default function RegisterPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-center gap-2 text-red-700">
-              <AlertCircle className="h-4 w-4" />
-              <span className="text-sm">{error}</span>
-            </div>
-          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
@@ -157,11 +122,10 @@ export default function RegisterPage() {
                 id="password"
                 name="password"
                 type="password"
-                placeholder="Create a password (min. 6 characters)"
+                placeholder="Create a password"
                 value={formData.password}
                 onChange={handleChange}
                 required
-                minLength={6}
               />
             </div>
             <div className="space-y-2">

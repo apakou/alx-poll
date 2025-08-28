@@ -106,7 +106,8 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Stats Overview */}
+      {/* Stats Cards */}
+              {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
             <CardContent className="p-6">
@@ -169,6 +170,8 @@ export default function DashboardPage() {
           </Card>
         </div>
 
+      {/* Recent Polls and Quick Actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Recent Polls */}
@@ -241,9 +244,7 @@ export default function DashboardPage() {
                 ))}
               </CardContent>
             </Card>
-          </div>
-
-          {/* Quick Actions Sidebar */}
+          </div>        {/* Quick Actions Sidebar */}
           <div className="space-y-6">
             <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-blue-50/30 backdrop-blur-sm">
               <CardHeader className="pb-4">
