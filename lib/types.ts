@@ -1,4 +1,8 @@
-export interface User {
+// Re-export database types for convenience
+export * from './types/database'
+
+// Application-specific UI types that extend database types
+export interface UIUser {
   id: string
   email: string
   name: string
@@ -6,11 +10,11 @@ export interface User {
   createdAt: Date
 }
 
-export interface Poll {
+export interface UIPoll {
   id: string
   title: string
   description?: string
-  options: PollOption[]
+  options: UIPollOption[]
   createdBy: string
   createdAt: Date
   endDate?: Date
@@ -20,7 +24,7 @@ export interface Poll {
   totalVotes: number
 }
 
-export interface PollOption {
+export interface UIPollOption {
   id: string
   text: string
   votes: number

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,6 +11,7 @@ import { Plus, X, Calendar, Users, Eye } from "lucide-react"
 import type { CreatePollData } from "@/lib/types"
 
 export default function CreatePollPage() {
+  const router = useRouter()
   const [formData, setFormData] = useState<CreatePollData>({
     title: "",
     description: "",
@@ -19,6 +21,8 @@ export default function CreatePollPage() {
     isAnonymous: true
   })
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
 
   const handleInputChange = (field: keyof CreatePollData, value: any) => {
     setFormData(prev => ({
@@ -58,27 +62,48 @@ export default function CreatePollPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError(null)
+    setSuccess(null)
 
     // Validate form
     const validOptions = formData.options.filter(option => option.trim() !== "")
     if (validOptions.length < 2) {
-      alert("Please provide at least 2 options")
+      setError("Please provide at least 2 options")
       setIsLoading(false)
       return
     }
 
-    // TODO: Implement actual poll creation logic
-    console.log("Creating poll:", {
-      ...formData,
-      options: validOptions
-    })
+    try {
+      const response = await fetch('/api/polls', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          options: validOptions
+        }),
+      })
 
-    // Simulate API call
-    setTimeout(() => {
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create poll')
+      }
+
+      // Success! Show success message and redirect to polls listing
+      setSuccess('Poll created successfully! Redirecting...')
+      
+      // Wait a bit to show the success message, then redirect
+      setTimeout(() => {
+        router.push('/polls')
+      }, 1500)
+    } catch (err) {
+      console.error('Error creating poll:', err)
+      setError(err instanceof Error ? err.message : 'Failed to create poll')
+    } finally {
       setIsLoading(false)
-      // TODO: Redirect to poll or dashboard
-      alert("Poll created successfully!")
-    }, 1000)
+    }
   }
 
   const isFormValid = formData.title.trim() !== "" && 
@@ -104,6 +129,19 @@ export default function CreatePollPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-red-600 text-sm">{error}</p>
+                </div>
+              )}
+              {success && (
+                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
+                  <p className="text-green-600 text-sm flex items-center">
+                    <span className="mr-2">✓</span>
+                    {success}
+                  </p>
+                </div>
+              )}
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Poll Title */}
                 <div className="space-y-2">
@@ -214,9 +252,9 @@ export default function CreatePollPage() {
                 <Button 
                   type="submit" 
                   className="w-full" 
-                  disabled={!isFormValid || isLoading}
+                  disabled={!isFormValid || isLoading || !!success}
                 >
-                  {isLoading ? "Creating Poll..." : "Create Poll"}
+                  {success ? "Poll Created! Redirecting..." : isLoading ? "Creating Poll..." : "Create Poll"}
                 </Button>
               </form>
             </CardContent>
