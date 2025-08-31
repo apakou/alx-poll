@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -9,56 +9,111 @@ import Link from "next/link"
 import { BarChart3, Users, Vote, Plus, TrendingUp, Calendar, Clock, Eye, MessageCircle } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 
-// Mock data for demonstration
-const mockStats = {
-  totalPolls: 12,
-  totalVotes: 248,
-  activePolls: 5,
-  responseRate: "78%"
+interface PollOption {
+  id: string
+  option_text: string
+  option_order: number
+  votes_count: number
 }
 
-const mockRecentPolls = [
-  {
-    id: "1",
-    title: "Favorite Programming Language",
-    description: "Help us understand the most popular programming languages in our community",
-    votes: 45,
-    status: "active",
-    createdAt: "2 days ago",
-    expiresAt: "5 days left",
-    category: "Technology"
-  },
-  {
-    id: "2", 
-    title: "Best Time for Team Meetings",
-    description: "Let's find the optimal time for our weekly team sync meetings",
-    votes: 23,
-    status: "closed",
-    createdAt: "1 week ago",
-    expiresAt: "Closed",
-    category: "Work"
-  },
-  {
-    id: "3",
-    title: "Office Lunch Preferences",
-    description: "What type of food should we order for our monthly office lunch?",
-    votes: 67,
-    status: "active",
-    createdAt: "3 days ago",
-    expiresAt: "2 days left",
-    category: "Food"
-  }
-]
+interface Poll {
+  id: string
+  title: string
+  description?: string
+  created_by: string
+  created_at: string
+  expires_at?: string
+  is_active: boolean
+  is_anonymous: boolean
+  allow_multiple_votes: boolean
+  category?: string
+  total_votes: number
+  poll_options: PollOption[]
+}
 
 export default function DashboardPage() {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const [polls, setPolls] = useState<Poll[]>([])
+  const [stats, setStats] = useState({
+    totalPolls: 0,
+    totalVotes: 0,
+    activePolls: 0,
+    responseRate: "0%"
+  })
+  const [loadingData, setLoadingData] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login')
     }
   }, [user, loading, router])
+
+  useEffect(() => {
+    if (user) {
+      fetchPolls()
+    }
+  }, [user])
+
+  const fetchPolls = async () => {
+    try {
+      setLoadingData(true)
+      const response = await fetch('/api/polls?created_by=' + user?.id)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch polls')
+      }
+
+      const userPolls = data.polls || []
+      setPolls(userPolls)
+
+      // Calculate stats
+      const totalPolls = userPolls.length
+      const totalVotes = userPolls.reduce((sum: number, poll: Poll) => sum + poll.total_votes, 0)
+      const activePolls = userPolls.filter((poll: Poll) => poll.is_active).length
+      const responseRate = totalPolls > 0 ? Math.round((totalVotes / totalPolls) * 100) / 10 : 0
+
+      setStats({
+        totalPolls,
+        totalVotes,
+        activePolls,
+        responseRate: `${responseRate}%`
+      })
+    } catch (err) {
+      console.error('Error fetching polls:', err)
+      setError(err instanceof Error ? err.message : 'Failed to fetch polls')
+    } finally {
+      setLoadingData(false)
+    }
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    })
+  }
+
+  const getTimeLeft = (expiresAt?: string) => {
+    if (!expiresAt) return "No expiration"
+    
+    const now = new Date()
+    const expiry = new Date(expiresAt)
+    const diff = expiry.getTime() - now.getTime()
+    
+    if (diff <= 0) return "Expired"
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+    if (days > 0) return `${days} days left`
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60))
+    if (hours > 0) return `${hours} hours left`
+    
+    const minutes = Math.floor(diff / (1000 * 60))
+    return `${minutes} minutes left`
+  }
 
   if (loading) {
     return (
@@ -113,7 +168,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-blue-600 text-sm font-medium uppercase tracking-wide">Total Polls</p>
-                  <p className="text-3xl font-bold text-blue-900 mt-1">{mockStats.totalPolls}</p>
+                  <p className="text-3xl font-bold text-blue-900 mt-1">{stats.totalPolls}</p>
                 </div>
                 <div className="bg-blue-200/50 p-3 rounded-full">
                   <BarChart3 className="h-6 w-6 text-blue-600" />
@@ -128,7 +183,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-green-600 text-sm font-medium uppercase tracking-wide">Total Votes</p>
-                  <p className="text-3xl font-bold text-green-900 mt-1">{mockStats.totalVotes}</p>
+                  <p className="text-3xl font-bold text-green-900 mt-1">{stats.totalVotes}</p>
                 </div>
                 <div className="bg-green-200/50 p-3 rounded-full">
                   <Users className="h-6 w-6 text-green-600" />
@@ -143,7 +198,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-purple-600 text-sm font-medium uppercase tracking-wide">Active Polls</p>
-                  <p className="text-3xl font-bold text-purple-900 mt-1">{mockStats.activePolls}</p>
+                  <p className="text-3xl font-bold text-purple-900 mt-1">{stats.activePolls}</p>
                 </div>
                 <div className="bg-purple-200/50 p-3 rounded-full">
                   <Vote className="h-6 w-6 text-purple-600" />
@@ -158,7 +213,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-amber-600 text-sm font-medium uppercase tracking-wide">Response Rate</p>
-                  <p className="text-3xl font-bold text-amber-900 mt-1">{mockStats.responseRate}</p>
+                  <p className="text-3xl font-bold text-amber-900 mt-1">{stats.responseRate}</p>
                 </div>
                 <div className="bg-amber-200/50 p-3 rounded-full">
                   <TrendingUp className="h-6 w-6 text-amber-600" />
@@ -192,53 +247,92 @@ export default function DashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {mockRecentPolls.map((poll) => (
-                  <div key={poll.id} className="group">
-                    <div className="bg-gradient-to-r from-gray-50 to-gray-100/50 rounded-xl p-5 border border-gray-200/50 hover:shadow-md hover:border-blue-200 transition-all duration-300">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                              {poll.title}
-                            </h3>
-                            <Badge 
-                              variant={poll.status === "active" ? "default" : "secondary"}
-                              className={`text-xs px-2 py-1 ${
-                                poll.status === "active" 
-                                  ? "bg-green-100 text-green-700 border-green-200" 
-                                  : "bg-gray-100 text-gray-600 border-gray-200"
-                              }`}
-                            >
-                              {poll.status}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                            {poll.description}
-                          </p>
-                          <div className="flex items-center gap-4 text-xs text-gray-500">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {poll.createdAt}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {poll.expiresAt}
-                            </span>
-                            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-200">
-                              {poll.category}
-                            </Badge>
-                          </div>
-                        </div>
-                        <div className="text-right ml-4">
-                          <div className="bg-white rounded-lg px-3 py-2 shadow-sm border border-gray-200">
-                            <p className="text-lg font-bold text-gray-900">{poll.votes}</p>
-                            <p className="text-xs text-gray-500">votes</p>
+                {loadingData ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                    <p className="text-gray-600 ml-2">Loading polls...</p>
+                  </div>
+                ) : error ? (
+                  <div className="text-center py-8">
+                    <p className="text-red-600">{error}</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={fetchPolls}
+                      className="mt-2"
+                    >
+                      Try Again
+                    </Button>
+                  </div>
+                ) : polls.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-8 border border-blue-100">
+                      <Vote className="h-12 w-12 text-blue-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">No polls yet</h3>
+                      <p className="text-gray-600 mb-4">Create your first poll to get started!</p>
+                      <Link href="/polls/create">
+                        <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Create Your First Poll
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  polls.slice(0, 5).map((poll) => (
+                    <Link key={poll.id} href={`/polls/${poll.id}`}>
+                      <div className="group cursor-pointer">
+                        <div className="bg-gradient-to-r from-gray-50 to-gray-100/50 rounded-xl p-5 border border-gray-200/50 hover:shadow-md hover:border-blue-200 transition-all duration-300">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                                  {poll.title}
+                                </h3>
+                                <Badge 
+                                  variant={poll.is_active ? "default" : "secondary"}
+                                  className={`text-xs px-2 py-1 ${
+                                    poll.is_active 
+                                      ? "bg-green-100 text-green-700 border-green-200" 
+                                      : "bg-gray-100 text-gray-600 border-gray-200"
+                                  }`}
+                                >
+                                  {poll.is_active ? "active" : "inactive"}
+                                </Badge>
+                              </div>
+                              {poll.description && (
+                                <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                                  {poll.description}
+                                </p>
+                              )}
+                              <div className="flex items-center gap-4 text-xs text-gray-500">
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  {formatDate(poll.created_at)}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {getTimeLeft(poll.expires_at)}
+                                </span>
+                                {poll.category && (
+                                  <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-200">
+                                    {poll.category}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                            <div className="text-right ml-4">
+                              <div className="bg-white rounded-lg px-3 py-2 shadow-sm border border-gray-200">
+                                <p className="text-lg font-bold text-gray-900">{poll.total_votes}</p>
+                                <p className="text-xs text-gray-500">votes</p>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
+                    </Link>
+                  ))
+                )}
               </CardContent>
             </Card>
           </div>

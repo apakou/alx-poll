@@ -1,94 +1,97 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Search, Filter, Calendar, Users } from "lucide-react"
+import { Search, Filter, Calendar, Users, Vote, Plus, Share2 } from "lucide-react"
 import Link from "next/link"
-import type { Poll } from "@/lib/types"
+import { useAuth } from "@/contexts/auth-context"
+import { SharePoll } from "@/components/share-poll"
 
-// Mock polls data
-const mockPolls: Poll[] = [
-  {
-    id: "1",
-    title: "What's your favorite programming language?",
-    description: "Help us understand the most popular programming languages in our community.",
-    options: [
-      { id: "1", text: "JavaScript", votes: 45, percentage: 35 },
-      { id: "2", text: "Python", votes: 38, percentage: 30 },
-      { id: "3", text: "TypeScript", votes: 25, percentage: 20 },
-      { id: "4", text: "Go", votes: 19, percentage: 15 }
-    ],
-    createdBy: "user1",
-    createdAt: new Date("2024-01-20"),
-    endDate: new Date("2024-02-20"),
-    isActive: true,
-    allowMultipleVotes: false,
-    isAnonymous: true,
-    totalVotes: 127
-  },
-  {
-    id: "2",
-    title: "Best time for team meetings?",
-    description: "Let's find the optimal time slot that works for everyone.",
-    options: [
-      { id: "1", text: "9:00 AM", votes: 23, percentage: 40 },
-      { id: "2", text: "2:00 PM", votes: 20, percentage: 35 },
-      { id: "3", text: "4:00 PM", votes: 14, percentage: 25 }
-    ],
-    createdBy: "user2", 
-    createdAt: new Date("2024-01-18"),
-    endDate: new Date("2024-01-25"),
-    isActive: false,
-    allowMultipleVotes: false,
-    isAnonymous: false,
-    totalVotes: 57
-  },
-  {
-    id: "3",
-    title: "Office lunch preferences",
-    description: "Help us choose the catering for next week's team lunch.",
-    options: [
-      { id: "1", text: "Italian", votes: 34, percentage: 45 },
-      { id: "2", text: "Mexican", votes: 26, percentage: 35 },
-      { id: "3", text: "Asian", votes: 15, percentage: 20 }
-    ],
-    createdBy: "user3",
-    createdAt: new Date("2024-01-15"),
-    isActive: true,
-    allowMultipleVotes: true,
-    isAnonymous: true,
-    totalVotes: 75
-  }
-]
+interface PollOption {
+  id: string
+  option_text: string
+  option_order: number
+  votes_count: number
+}
+
+interface Poll {
+  id: string
+  title: string
+  description?: string
+  created_by: string
+  created_at: string
+  expires_at?: string
+  is_active: boolean
+  is_anonymous: boolean
+  allow_multiple_votes: boolean
+  category?: string
+  total_votes: number
+  poll_options: PollOption[]
+}
 
 export default function PollsPage() {
+  const { user, loading: authLoading } = useAuth()
+  const router = useRouter()
+  const [polls, setPolls] = useState<Poll[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "closed">("all")
 
-  const filteredPolls = mockPolls.filter(poll => {
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login')
+    }
+  }, [user, authLoading, router])
+
+  useEffect(() => {
+    if (user) {
+      fetchPolls()
+    }
+  }, [user])
+
+  const fetchPolls = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/polls')
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch polls')
+      }
+
+      setPolls(data.polls || [])
+    } catch (err) {
+      console.error('Error fetching polls:', err)
+      setError(err instanceof Error ? err.message : 'Failed to fetch polls')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const filteredPolls = polls.filter(poll => {
     const matchesSearch = poll.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          poll.description?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesFilter = filterStatus === "all" || 
-                         (filterStatus === "active" && poll.isActive) ||
-                         (filterStatus === "closed" && !poll.isActive)
+                         (filterStatus === "active" && poll.is_active) ||
+                         (filterStatus === "closed" && !poll.is_active)
     return matchesSearch && matchesFilter
   })
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', { 
-      month: 'short', 
-      day: 'numeric',
-      year: 'numeric'
-    }).format(date)
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
   }
 
-  const getDaysRemaining = (endDate?: Date) => {
+  const getDaysRemaining = (endDate?: string) => {
     if (!endDate) return null
     const now = new Date()
-    const diff = endDate.getTime() - now.getTime()
+    const end = new Date(endDate)
+    const diff = end.getTime() - now.getTime()
     const days = Math.ceil(diff / (1000 * 60 * 60 * 24))
     if (days < 0) return "Ended"
     if (days === 0) return "Ends today"
@@ -147,12 +150,12 @@ export default function PollsPage() {
           <Card key={poll.id} className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex justify-between items-start mb-2">
-                <Badge variant={poll.isActive ? "default" : "secondary"}>
-                  {poll.isActive ? "Active" : "Closed"}
+                <Badge variant={poll.is_active ? "default" : "secondary"}>
+                  {poll.is_active ? "Active" : "Closed"}
                 </Badge>
-                {poll.endDate && (
+                {poll.expires_at && (
                   <span className="text-xs text-muted-foreground">
-                    {getDaysRemaining(poll.endDate)}
+                    {getDaysRemaining(poll.expires_at)}
                   </span>
                 )}
               </div>
@@ -164,16 +167,26 @@ export default function PollsPage() {
             <CardContent>
               <div className="space-y-4">
                 {/* Top option preview */}
-                {poll.options.length > 0 && (
+                {poll.poll_options && poll.poll_options.length > 0 && (
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span>{poll.options[0].text}</span>
-                      <span className="font-medium">{poll.options[0].percentage}%</span>
+                      <span>{poll.poll_options[0].option_text}</span>
+                      <span className="font-medium">
+                        {poll.total_votes > 0 
+                          ? Math.round((poll.poll_options[0].votes_count / poll.total_votes) * 100)
+                          : 0
+                        }%
+                      </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div 
                         className="bg-primary h-2 rounded-full transition-all"
-                        style={{ width: `${poll.options[0].percentage}%` }}
+                        style={{ 
+                          width: `${poll.total_votes > 0 
+                            ? Math.round((poll.poll_options[0].votes_count / poll.total_votes) * 100)
+                            : 0
+                          }%` 
+                        }}
                       />
                     </div>
                   </div>
@@ -183,22 +196,27 @@ export default function PollsPage() {
                 <div className="flex items-center justify-between text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Users className="h-4 w-4" />
-                    <span>{poll.totalVotes} votes</span>
+                    <span>{poll.total_votes} votes</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
-                    <span>{formatDate(poll.createdAt)}</span>
+                    <span>{formatDate(poll.created_at)}</span>
                   </div>
                 </div>
 
                 {/* Action buttons */}
                 <div className="flex gap-2">
-                  <Button className="flex-1" size="sm" disabled={!poll.isActive}>
-                    {poll.isActive ? "Vote Now" : "View Results"}
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    Details
-                  </Button>
+                  <Link href={`/polls/${poll.id}`} className="flex-1">
+                    <Button className="w-full" size="sm" disabled={!poll.is_active}>
+                      {poll.is_active ? "Vote Now" : "View Results"}
+                    </Button>
+                  </Link>
+                  <SharePoll pollId={poll.id} pollTitle={poll.title} />
+                  <Link href={`/polls/${poll.id}`}>
+                    <Button variant="outline" size="sm">
+                      Details
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </CardContent>

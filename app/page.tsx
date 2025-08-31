@@ -6,11 +6,11 @@ import { Vote, BarChart3, Users, Zap, Shield, Clock } from "lucide-react"
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 text-gray-900">
       {/* Hero Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
-          <Badge variant="outline" className="mb-4">
+          <Badge variant="outline" className="mb-4 text-gray-700">
             ✨ Create polls in seconds
           </Badge>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
@@ -55,8 +55,8 @@ export default function Home() {
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <Zap className="h-6 w-6 text-blue-600" />
                 </div>
-                <CardTitle>Quick & Easy</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-gray-900">Quick & Easy</CardTitle>
+                <CardDescription className="text-gray-600">
                   Create beautiful polls in minutes with our intuitive drag-and-drop interface.
                 </CardDescription>
               </CardHeader>
@@ -67,8 +67,8 @@ export default function Home() {
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <BarChart3 className="h-6 w-6 text-green-600" />
                 </div>
-                <CardTitle>Real-time Results</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-gray-900">Real-time Results</CardTitle>
+                <CardDescription className="text-gray-600">
                   Watch responses come in live and get instant insights with beautiful charts.
                 </CardDescription>
               </CardHeader>
@@ -79,8 +79,8 @@ export default function Home() {
                 <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <Users className="h-6 w-6 text-purple-600" />
                 </div>
-                <CardTitle>Engage Your Audience</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-gray-900">Engage Your Audience</CardTitle>
+                <CardDescription className="text-gray-600">
                   Share polls easily and boost participation with anonymous voting options.
                 </CardDescription>
               </CardHeader>
@@ -91,8 +91,8 @@ export default function Home() {
                 <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <Shield className="h-6 w-6 text-orange-600" />
                 </div>
-                <CardTitle>Secure & Private</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-gray-900">Secure & Private</CardTitle>
+                <CardDescription className="text-gray-600">
                   Your data is protected with enterprise-grade security and privacy controls.
                 </CardDescription>
               </CardHeader>
@@ -103,8 +103,8 @@ export default function Home() {
                 <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <Clock className="h-6 w-6 text-red-600" />
                 </div>
-                <CardTitle>Time Controls</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-gray-900">Time Controls</CardTitle>
+                <CardDescription className="text-gray-600">
                   Set start and end dates, or let polls run indefinitely based on your needs.
                 </CardDescription>
               </CardHeader>
@@ -115,8 +115,8 @@ export default function Home() {
                 <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <Vote className="h-6 w-6 text-indigo-600" />
                 </div>
-                <CardTitle>Multiple Options</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-gray-900">Multiple Options</CardTitle>
+                <CardDescription className="text-gray-600">
                   Support for multiple choice, single selection, and anonymous voting.
                 </CardDescription>
               </CardHeader>
@@ -154,7 +154,7 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-white mb-4">
             Ready to get started?
           </h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <p className="text-xl text-white/90 mb-8">
             Join thousands of users who trust ALX Poll for their decision-making needs.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
