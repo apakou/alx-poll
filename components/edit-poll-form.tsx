@@ -58,32 +58,24 @@ export function EditPollForm({ poll, onSave, onCancel }: EditPollFormProps) {
     try {
       const { pollUpdate, optionUpdates } = editFormToUpdate(formData)
 
-      // Update poll
-      const response = await fetch(`/api/polls/${poll.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          pollUpdate,
-          optionUpdates
-        }),
+      const res = await fetch(`/api/polls/${poll.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pollUpdate, optionUpdates }),
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to update poll')
+      if (!res.ok) {
+        const { error } = await res.json()
+        throw new Error(error || "Failed to update poll")
       }
 
-      toast.success('Poll updated successfully!')
-      onSave?.(data.poll)
-      
+      const { poll: updatedPoll } = await res.json()
+      toast.success("Poll updated successfully!")
+      onSave?.(updatedPoll)
     } catch (err) {
-      console.error('Error updating poll:', err)
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update poll'
-      setErrors([errorMessage])
-      toast.error(errorMessage)
+      const message = err instanceof Error ? err.message : "Failed to update poll"
+      setErrors([message])
+      toast.error(message)
     } finally {
       setIsLoading(false)
     }
