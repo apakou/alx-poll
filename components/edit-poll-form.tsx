@@ -30,24 +30,84 @@ import {
 } from "@/lib/utils/poll-edit"
 import { toast } from "sonner"
 
+/**
+ * Edit Poll Form Props Interface
+ * 
+ * Defines the required props for the EditPollForm component.
+ */
 interface EditPollFormProps {
+  /** Poll data to be edited */
   poll: EditPollData
+  /** Callback function called when poll is successfully saved */
   onSave?: (updatedPoll: EditPollData) => void
+  /** Callback function called when editing is cancelled */
   onCancel?: () => void
 }
 
+/**
+ * Edit Poll Form Component
+ * 
+ * A comprehensive form component for editing existing polls. Provides full
+ * poll management capabilities including title, description, options, settings,
+ * and expiration date management.
+ * 
+ * Key features:
+ * - Real-time form validation with error display
+ * - Dynamic option management (add, remove, reorder)
+ * - Poll settings toggles (active, anonymous, multiple votes)
+ * - Date picker for expiration dates
+ * - Visual feedback for option status (new/existing)
+ * - Optimistic UI updates with proper error handling
+ * - Responsive design with accessible form controls
+ * 
+ * Form sections:
+ * 1. Basic Information (title, description, category, expiry)
+ * 2. Poll Options (dynamic list with drag-and-drop support)
+ * 3. Poll Settings (active status, anonymity, multiple votes)
+ * 4. Action Buttons (save, cancel)
+ * 
+ * Data flow:
+ * 1. Convert poll data to form-compatible structure
+ * 2. Handle user interactions and form updates
+ * 3. Validate form data before submission
+ * 4. Transform form data to API payload
+ * 5. Submit updates and handle response
+ * 6. Provide feedback and navigation
+ * 
+ * @param poll - The poll data to be edited
+ * @param onSave - Optional callback for successful save operations
+ * @param onCancel - Optional callback for cancel operations
+ * @returns JSX.Element - Fully functional poll editing form
+ */
 export function EditPollForm({ poll, onSave, onCancel }: EditPollFormProps) {
   const router = useRouter()
+  
+  // Form state management
   const [formData, setFormData] = useState<EditPollFormData>(() => pollToEditForm(poll))
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<string[]>([])
 
+  /**
+   * Form Submission Handler
+   * 
+   * Validates form data, transforms it to API format, and submits the update.
+   * Handles loading states, error display, and success feedback.
+   * 
+   * Process:
+   * 1. Prevent default form submission
+   * 2. Set loading state and clear previous errors
+   * 3. Validate form data using business rules
+   * 4. Transform form data to API payload
+   * 5. Submit PATCH request to update endpoint
+   * 6. Handle success/error responses
+   * 7. Provide user feedback and navigation
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setErrors([])
 
-    // Validate form
+    // Client-side validation before API call
     const validation = validateEditPollForm(formData)
     if (!validation.isValid) {
       setErrors(validation.errors)

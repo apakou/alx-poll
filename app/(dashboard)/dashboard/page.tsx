@@ -9,31 +9,83 @@ import Link from "next/link"
 import { BarChart3, Users, Vote, Plus, TrendingUp, Calendar, Clock, Eye, MessageCircle } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 
+/**
+ * Poll Option Interface
+ * 
+ * Represents a single option within a poll with vote tracking.
+ */
 interface PollOption {
+  /** Unique identifier for the poll option */
   id: string
+  /** Display text for the option */
   option_text: string
+  /** Display order (1, 2, 3, etc.) */
   option_order: number
+  /** Current number of votes for this option */
   votes_count: number
 }
 
+/**
+ * Poll Interface
+ * 
+ * Complete poll data structure with metadata and nested options.
+ */
 interface Poll {
+  /** Unique identifier for the poll */
   id: string
+  /** Poll title/question */
   title: string
+  /** Optional poll description */
   description?: string
+  /** User ID of poll creator */
   created_by: string
+  /** ISO timestamp of poll creation */
   created_at: string
+  /** Optional ISO timestamp of poll expiration */
   expires_at?: string
+  /** Whether poll accepts new votes */
   is_active: boolean
+  /** Whether votes are anonymous */
   is_anonymous: boolean
+  /** Whether users can select multiple options */
   allow_multiple_votes: boolean
+  /** Optional poll category for organization */
   category?: string
+  /** Total vote count across all options */
   total_votes: number
+  /** Array of poll options with vote counts */
   poll_options: PollOption[]
 }
 
+/**
+ * Dashboard Page Component
+ * 
+ * Main dashboard interface for poll creators and users. Provides an overview
+ * of user's polls, voting statistics, and quick actions for poll management.
+ * 
+ * Features:
+ * - Real-time poll statistics (total polls, votes, active polls)
+ * - Recent polls list with status indicators
+ * - Quick action buttons for poll creation and management
+ * - Responsive grid layout with animated stat cards
+ * - Error handling with retry functionality
+ * - Protected route with authentication checks
+ * 
+ * Data flow:
+ * 1. Authentication check - redirect to login if not authenticated
+ * 2. Fetch user's polls from API with error handling
+ * 3. Calculate statistics from poll data
+ * 4. Display stats cards and recent polls list
+ * 5. Provide navigation to poll details and creation
+ * 
+ * @returns JSX.Element - Fully functional dashboard page
+ */
 export default function DashboardPage() {
+  // Authentication and navigation
   const { user, loading } = useAuth()
   const router = useRouter()
+  
+  // Poll data state management
   const [polls, setPolls] = useState<Poll[]>([])
   const [stats, setStats] = useState({
     totalPolls: 0,
@@ -41,21 +93,47 @@ export default function DashboardPage() {
     activePolls: 0,
     responseRate: "0%"
   })
+  
+  // UI state management
   const [loadingData, setLoadingData] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  /**
+   * Authentication Guard Effect
+   * 
+   * Redirects unauthenticated users to login page.
+   * Runs after initial auth check completes.
+   */
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login')
     }
   }, [user, loading, router])
 
+  /**
+   * Data Fetching Effect
+   * 
+   * Fetches user's polls when authentication is confirmed.
+   * Triggers poll data loading and statistics calculation.
+   */
   useEffect(() => {
     if (user) {
       fetchPolls()
     }
   }, [user])
 
+  /**
+   * Poll Data Fetcher
+   * 
+   * Fetches user's polls from API and calculates dashboard statistics.
+   * Handles loading states, error scenarios, and data transformation.
+   * 
+   * Statistics calculated:
+   * - Total polls created by user
+   * - Total votes received across all polls
+   * - Number of currently active polls
+   * - Average response rate (votes per poll)
+   */
   const fetchPolls = async () => {
     try {
       setLoadingData(true)
@@ -69,7 +147,7 @@ export default function DashboardPage() {
       const userPolls = data.polls || []
       setPolls(userPolls)
 
-      // Calculate stats
+      // Calculate dashboard statistics
       const totalPolls = userPolls.length
       const totalVotes = userPolls.reduce((sum: number, poll: Poll) => sum + poll.total_votes, 0)
       const activePolls = userPolls.filter((poll: Poll) => poll.is_active).length
@@ -89,6 +167,14 @@ export default function DashboardPage() {
     }
   }
 
+  /**
+   * Date Formatter Utility
+   * 
+   * Converts ISO date strings to user-friendly format.
+   * 
+   * @param dateString - ISO date string from database
+   * @returns Formatted date string (e.g., "Dec 25")
+   */
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -96,6 +182,15 @@ export default function DashboardPage() {
     })
   }
 
+  /**
+   * Time Remaining Calculator
+   * 
+   * Calculates and formats remaining time until poll expiration.
+   * Provides human-readable time indicators for poll status.
+   * 
+   * @param expiresAt - Optional ISO expiration timestamp
+   * @returns Human-readable time remaining or "No expiration"
+   */
   const getTimeLeft = (expiresAt?: string) => {
     if (!expiresAt) return "No expiration"
     
