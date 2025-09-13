@@ -1,21 +1,51 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: 0 0 100; /* #ffffff */
+  --foreground: 0 0 9; /* #171717 */
+  
+  /* Blue Primary Theme Colors */
+  --primary: 217 91 60; /* #2563eb */
+  --primary-foreground: 0 0 100; /* #ffffff */
+  
+  /* Additional UI Colors */
+  --secondary: 210 40 98; /* #f1f5f9 */
+  --secondary-foreground: 222 84 5; /* #0f172a */
+  --muted: 210 40 98; /* #f8fafc */
+  --muted-foreground: 215 20 65; /* #64748b */
+  --accent: 210 40 98; /* #f1f5f9 */
+  --accent-foreground: 222 84 5; /* #0f172a */
+  --destructive: 0 84 60; /* #ef4444 */
+  --destructive-foreground: 0 0 100; /* #ffffff */
+  --border: 214 32 91; /* #e2e8f0 */
+  --input: 214 32 91; /* #e2e8f0 */
+  --ring: 217 91 60; /* #2563eb */
+  --radius: 0.5rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 222 84 5; /* #0f172a */
+    --foreground: 210 40 98; /* #f8fafc */
+    
+    /* Blue Primary Theme Colors - Dark Mode */
+    --primary: 214 95 68; /* #3b82f6 */
+    --primary-foreground: 0 0 100; /* #ffffff */
+    
+    /* Additional UI Colors - Dark Mode */
+    --secondary: 215 25 27; /* #1e293b */
+    --secondary-foreground: 210 40 98; /* #f8fafc */
+    --muted: 215 25 27; /* #1e293b */
+    --muted-foreground: 215 16 65; /* #94a3b8 */
+    --accent: 215 25 27; /* #1e293b */
+    --accent-foreground: 210 40 98; /* #f8fafc */
+    --destructive: 0 84 60; /* #ef4444 */
+    --destructive-foreground: 0 0 100; /* #ffffff */
+    --border: 215 25 35; /* #334155 */
+    --input: 215 25 35; /* #334155 */
+    --ring: 214 95 68; /* #3b82f6 */
   }
 }
 
