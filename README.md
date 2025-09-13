@@ -486,4 +486,9 @@ If you have any questions or run into issues:
 
 ---
 
+## Requesting for database schema using MCP server
+
+<img width="1882" height="1045" alt="image" src="https://github.com/user-attachments/assets/db04231b-3a58-4665-8769-a15ccf27b7c7" />
+
+
 Built with ❤️ using Next.js, TypeScript, and Supabase.
